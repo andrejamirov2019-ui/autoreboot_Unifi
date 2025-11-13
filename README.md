@@ -57,3 +57,49 @@ POLL_INTERVAL=20         # время опроса в секундах
 STATE_FILE=unifi_ap_state.json # Информация о состоянии AP
 ```
 
+#### После всего это я из кода сделал службу
+
+``` /etc/systemd/system/unifi-ap-bot.service ```
+
+```
+[Unit]
+Description=UniFi AP Monitoring & Maintenance Service
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin
+EnvironmentFile=/home/admin/.env
+
+# Виртуальное окружение + запуск скрипта
+ExecStart=/bin/bash -c 'source /home/admin/myvenv/bin/activate && python3 /home/admin/reboot_ap.py'
+
+Restart=always
+RestartSec=10
+
+# Чтобы лог выводился в journalctl
+StandardOutput=append:/home/admin/reboot_ap_service.log
+StandardError=append:/home/admin/reboot_ap_service.log
+
+[Install]
+WantedBy=multi-user.target
+```
+Дальше просто регестриуем демон 
+```
+sudo systemctl daemon-reload
+```
+Запускаем 
+``` 
+sudo systemctl start unifi-ap-bot
+```
+Делаем автозапуск службы
+```
+sudo systemctl enable unifi-ap-bot
+```
+
+Если дополняешь .env или меняешь код, то нужно перезапустить службу 
+
+```
+sudo systemctl restart unifi-ap-bot
+``` 
