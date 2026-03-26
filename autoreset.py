@@ -50,8 +50,11 @@ STATE_FILE = os.getenv("STATE_FILE", "unifi_ap_state.json")
 SILENCE_UNTIL: Dict[str, float] = {}
 SILENCE_LOCK = threading.Lock()
 
-# --- Утилиты / Telegram ---
+# upd 26.03.2026 прокси
+TG_PROXY = os.getenv("TG_PROXY")
 
+# --- Утилиты / Telegram ---
+'''
 def send_tg(text: str, disable_notification: bool = False) -> None:
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
         print("[WARN] TELEGRAM_TOKEN / TELEGRAM_CHAT_ID не заданы — пропускаю отправку TG")
@@ -73,6 +76,40 @@ def human_ts(ts: Optional[Union[float, int]] = None) -> str:
     if ts is None:
         return "-"
     return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+'''
+
+# upd 26.03.2026
+def send_tg(text: str, disable_notification: bool = False) -> None:
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("[WARN] TELEGRAM_TOKEN / TELEGRAM_CHAT_ID не заданы — пропускаю отправку TG")
+        return
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+
+    proxies = None
+    if TG_PROXY:
+        proxies = {
+            "http": TG_PROXY,
+            "https": TG_PROXY,
+        }
+
+    try:
+        resp = requests.post(
+            url,
+            json={
+                "chat_id": TELEGRAM_CHAT_ID,
+                "text": text,
+                "parse_mode": "HTML",
+                "disable_notification": disable_notification
+            },
+            proxies=proxies,
+            timeout=15
+        )
+        if resp.status_code != 200:
+            print(f"[WARN] Telegram HTTP {resp.status_code}: {resp.text}")
+    except Exception as e:
+        print(f"[WARN] Telegram error: {e}")
+
 
 # --- Подключение к контроллеру ---
 
