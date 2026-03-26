@@ -55,7 +55,13 @@ REBOOT_WAIT_TIMEOUT=600  # ожидание после ребута (сек)
 # Мониторинг
 POLL_INTERVAL=20         # время опроса в секундах
 STATE_FILE=unifi_ap_state.json # Информация о состоянии AP
+
+# upd 26.03.2026
+TG_PROXY=socks5h://IP:port
+
 ```
+
+
 
 #### После всего это я из кода сделал службу
 
